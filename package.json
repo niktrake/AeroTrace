@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "electron": "^40.7.0"
+  },
+  "dependencies": {
+    "electron-is-dev": "^3.0.1"
   }
 }
