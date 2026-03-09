@@ -10,7 +10,14 @@ function App() {
   return (
     <>
       {screen === "startup" && (
-        <StartupScreen onNewCase={() => setScreen("newcase")} />
+        <StartupScreen onNewCase={(data, path) => {
+          if(data){
+            setCaseData({...data, casePath: path});
+            setScreen("dashboard");
+          }else{
+            setScreen("newcase");
+          }
+        }} />
       )}
 
       {screen === "newcase" && (

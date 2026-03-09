@@ -68,4 +68,35 @@ ipcMain.handle("create-case", async (event, caseData) => {
     }
 })
 
+//handling open case event
+ipcMain.handle("open-case", async () => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ["openDirectory"]
+    });
 
+    if (result.canceled) {
+      return { success: false };
+    }
+
+    const selectedPath = result.filePaths[0];
+    const metadataPath = path.join(selectedPath, "case_metadata.json");
+
+    if (!fs.existsSync(metadataPath)) {
+      return { success: false, error: "Invalid case folder" };
+    }
+
+    const metadata = JSON.parse(
+      fs.readFileSync(metadataPath, "utf-8")
+    );
+
+    return {
+      success: true,
+      caseData: metadata,
+      casePath: selectedPath
+    };
+
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
