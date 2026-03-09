@@ -39,6 +39,10 @@ ipcMain.handle("create-case", async (event, caseData) => {
 
         //now create folder with casename and in same folder create other 3 dirs 
         const casePath = path.join(basePath, caseData.caseName);
+        //if case already exists
+        if (fs.existsSync(casePath)) {
+            return { success: false, error: "Case already exists" };
+        }
 
         fs.mkdirSync(casePath);
         fs.mkdirSync(path.join(casePath, "evidence"));
@@ -100,3 +104,5 @@ ipcMain.handle("open-case", async () => {
     return { success: false, error: error.message };
   }
 });
+
+

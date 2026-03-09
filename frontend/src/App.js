@@ -11,7 +11,7 @@ function App() {
     <>
       {screen === "startup" && (
         <StartupScreen onNewCase={(data, path) => {
-          if(data){
+          if(data && path){
             setCaseData({...data, casePath: path});
             setScreen("dashboard");
           }else{

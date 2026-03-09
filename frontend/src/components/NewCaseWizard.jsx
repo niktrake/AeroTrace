@@ -21,6 +21,7 @@ function NewCaseWizard({ onFinish }) {
         onChange={(e) => setExaminer(e.target.value)}
       />
       <br /><br />
+      
 
       <button onClick={async () => {
         const result = await window.electronAPI.createCase({
