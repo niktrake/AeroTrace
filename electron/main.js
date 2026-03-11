@@ -30,7 +30,7 @@ app.whenReady().then(createWindow);
 //handle case creation
 ipcMain.handle("create-case", async (event, caseData) => {
     try{
-        const basePath = path.join(__dirname, "..", "cases");
+        const basePath = caseData.basePath || path.join(__dirname, "..", "cases");
 
         // Create cases folder if not exists
         if (!fs.existsSync(basePath)) {
@@ -106,3 +106,19 @@ ipcMain.handle("open-case", async () => {
 });
 
 
+//user selecting the case directory
+ipcMain.handle("select-case-directory", async () => {
+
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"]
+  });
+
+  if (result.canceled) {
+    return { success: false };
+  }
+
+  return {
+    success: true,
+    path: result.filePaths[0]
+  };
+});

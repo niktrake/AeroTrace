@@ -3,6 +3,7 @@ import React, { useState } from "react";
 function NewCaseWizard({ onFinish }) {
   const [caseName, setCaseName] = useState("");
   const [examiner, setExaminer] = useState("");
+  const [basePath, setBasePath] = useState("");
 
   return (
     <div style={{ padding: "50px" }}>
@@ -22,15 +23,25 @@ function NewCaseWizard({ onFinish }) {
       />
       <br /><br />
       
+      <button onClick={ async () => {
+        const result = await window.electronAPI.selectCaseDirectory();
+        if(result.success){
+          setBasePath(result.path)
+        }
+
+      }}>
+        Select Case Directory
+      </button>
 
       <button onClick={async () => {
         const result = await window.electronAPI.createCase({
             caseName,
-            examiner
+            examiner,
+            basePath
         });
 
         if (result.success) {
-            onFinish({ caseName, examiner, casePath: result.casePath });
+            onFinish({ caseName, examiner, casePath: basePath });
         } else {
             alert(result.error);
         }
