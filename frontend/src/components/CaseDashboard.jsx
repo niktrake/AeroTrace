@@ -8,9 +8,21 @@ function CaseDashboard({ caseData }) {
       <p><strong>Examiner:</strong> {caseData.examiner}</p>
 
       <hr />
+      <button
+  onClick={async () => {
+    const result = await window.electronAPI.importDroneFolder();
 
-      <h3>Upload Drone Data</h3>
-      <input type="file" multiple />
+    if (result.success) {
+      alert("Drone data imported successfully");
+    } else {
+      alert("Import cancelled");
+    }
+  }}
+>
+Import Drone Data
+</button>
+
+     
 
       <hr />
 

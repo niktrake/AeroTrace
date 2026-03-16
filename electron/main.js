@@ -1,6 +1,9 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
+let currentCasePath = null;
+const crypto = require("crypto");
+
 
 const isDev = require("electron-is-dev")
 
@@ -48,6 +51,9 @@ ipcMain.handle("create-case", async (event, caseData) => {
         fs.mkdirSync(path.join(casePath, "evidence"));
         fs.mkdirSync(path.join(casePath, "analysis"));
         fs.mkdirSync(path.join(casePath, "reports"));
+        
+        //added for import drone folder 
+        currentCasePath = casePath;
 
         //creating a metadata.json file, containing metadata about the case
         const metadata = {
@@ -121,4 +127,136 @@ ipcMain.handle("select-case-directory", async () => {
     success: true,
     path: result.filePaths[0]
   };
+});
+
+
+//ipc handler for uploading drone data 
+
+function scanDirectory(dirPath) {
+
+  let files = [];
+
+  const items = fs.readdirSync(dirPath);
+
+  for (const item of items) {
+
+    const fullPath = path.join(dirPath, item);
+
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      files = files.concat(scanDirectory(fullPath));
+    } 
+    else {
+      files.push(fullPath);
+    }
+
+  }
+
+  return files;
+}
+
+function ensureEvidenceFolder(casePath) {
+
+  const evidencePath = path.join(casePath, "evidence", "original");
+
+  if (!fs.existsSync(evidencePath)) {
+    fs.mkdirSync(evidencePath, { recursive: true });
+  }
+
+  return evidencePath;
+}
+
+function classifyFile(filePath) {
+
+  const ext = path.extname(filePath).toLowerCase();
+
+  if ([".mp4", ".mov"].includes(ext)) return "video";
+
+  if ([".jpg", ".jpeg", ".dng"].includes(ext)) return "image";
+
+  if ([".csv"].includes(ext)) return "telemetry";
+
+  if ([".dat"].includes(ext)) return "flight_log";
+
+  if ([".json", ".cfg"].includes(ext)) return "config";
+
+  return "unknown";
+}
+
+
+
+function generateHash(filePath) {
+
+  const buffer = fs.readFileSync(filePath);
+
+  return crypto
+    .createHash("sha256")
+    .update(buffer)
+    .digest("hex");
+
+}
+
+
+function createEvidenceObject(filePath) {
+
+  const stat = fs.statSync(filePath);
+
+  return {
+
+    id: crypto.randomUUID(),
+
+    filename: path.basename(filePath),
+
+    path: filePath,
+
+    size: stat.size,
+
+    type: classifyFile(filePath),
+
+    hash: generateHash(filePath),
+
+    importedAt: new Date().toISOString()
+
+  };
+
+}
+
+ipcMain.handle("import-drone-folder", async () => {
+
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"]
+  });
+
+  if (result.canceled) return { success: false };
+
+  const folderPath = result.filePaths[0];
+
+  const files = scanDirectory(folderPath);
+
+  const evidenceDir = ensureEvidenceFolder(currentCasePath);
+
+  const evidenceList = [];
+
+  for (const file of files) {
+
+    const filename = path.basename(file);
+
+    const destination = path.join(evidenceDir, filename);
+
+    fs.copyFileSync(file, destination);
+
+    const evidence = createEvidenceObject(destination);
+
+    evidenceList.push(evidence);
+
+  }
+
+  fs.writeFileSync(
+    path.join(currentCasePath, "analysis", "evidence_index.json"),
+    JSON.stringify(evidenceList, null, 2)
+  );
+
+  return { success: true };
+
 });
