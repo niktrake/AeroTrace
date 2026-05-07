@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 let currentCasePath = null;
 const crypto = require("crypto");
+const { execFile } = require("child_process");
 
 
 const isDev = require("electron-is-dev")
@@ -167,21 +168,45 @@ function ensureEvidenceFolder(casePath) {
   return evidencePath;
 }
 
-function classifyFile(filePath) {
+function classifyFileML(filePath) {
 
-  const ext = path.extname(filePath).toLowerCase();
+  return new Promise((resolve, reject) => {
 
-  if ([".mp4", ".mov"].includes(ext)) return "video";
+    // Path to Python executable
+    const pythonPath = "python";
 
-  if ([".jpg", ".jpeg", ".dng"].includes(ext)) return "image";
+    // Path to predict.py
+    const scriptPath = path.join(
+      __dirname,
+      "ml",
+      "predict.py"
+    );
 
-  if ([".csv"].includes(ext)) return "telemetry";
+    execFile(
+      pythonPath,
+      [scriptPath, filePath],
+      (error, stdout, stderr) => {
 
-  if ([".dat"].includes(ext)) return "flight_log";
+        if (error) {
+          console.error("ML Classification Error:", error);
+          reject(error);
+          return;
+        }
 
-  if ([".json", ".cfg"].includes(ext)) return "config";
+        if (stderr) {
+          console.error(stderr);
+        }
 
-  return "unknown";
+        // Python returns predicted class
+        const prediction = stdout.trim();
+
+        resolve(prediction);
+
+      }
+    );
+
+  });
+
 }
 
 
@@ -198,9 +223,12 @@ function generateHash(filePath) {
 }
 
 
-function createEvidenceObject(filePath) {
+async function createEvidenceObject(filePath) {
 
   const stat = fs.statSync(filePath);
+
+  // ML prediction
+  const predictedType = await classifyFileML(filePath);
 
   return {
 
@@ -212,7 +240,7 @@ function createEvidenceObject(filePath) {
 
     size: stat.size,
 
-    type: classifyFile(filePath),
+    type: predictedType,
 
     hash: generateHash(filePath),
 
@@ -246,7 +274,7 @@ ipcMain.handle("import-drone-folder", async () => {
 
     fs.copyFileSync(file, destination);
 
-    const evidence = createEvidenceObject(destination);
+    const evidence = await createEvidenceObject(destination);
 
     evidenceList.push(evidence);
 
