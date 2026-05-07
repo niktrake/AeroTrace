@@ -63,7 +63,7 @@ ipcMain.handle("create-case", async (event, caseData) => {
         createdAt: new Date().toISOString(),
         status: "Open"
         };
-
+        
         fs.writeFileSync(
             path.join(casePath, "case_metadata.json"),
             JSON.stringify(metadata, null, 2)
@@ -100,6 +100,8 @@ ipcMain.handle("open-case", async () => {
     const metadata = JSON.parse(
       fs.readFileSync(metadataPath, "utf-8")
     );
+
+   
 
     return {
       success: true,
@@ -266,6 +268,9 @@ ipcMain.handle("import-drone-folder", async () => {
 
   const evidenceList = [];
 
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  const totalFiles = files.length;
+  let processedFiles = 0;
   for (const file of files) {
 
     const filename = path.basename(file);
@@ -278,9 +283,24 @@ ipcMain.handle("import-drone-folder", async () => {
 
     evidenceList.push(evidence);
 
-  }
+    processedFiles++;
 
+    const progress = Math.round(
+      (processedFiles / totalFiles) * 100
+    );
+
+    mainWindow.webContents.send(
+    "upload-progress",
+    {
+      progress,
+      currentFile: filename
+    }
+    );
+
+  }
+    
   fs.writeFileSync(
+    
     path.join(currentCasePath, "analysis", "evidence_index.json"),
     JSON.stringify(evidenceList, null, 2)
   );
