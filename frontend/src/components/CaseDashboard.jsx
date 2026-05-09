@@ -76,7 +76,24 @@ Import Drone Data
 
   </div>
 
-)}
+)}  
+
+      <button
+  onClick={async () => {
+
+    const result =
+      await window.electronAPI.runAnalysis();
+
+    if (result.success) {
+      alert("Analysis completed");
+    } else {
+      alert(result.error);
+    }
+
+  }}
+>
+  Analyse
+</button>
 
      
 

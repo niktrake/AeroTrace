@@ -102,7 +102,7 @@ ipcMain.handle("open-case", async () => {
     );
 
    
-
+    currentCasePath = selectedPath;
     return {
       success: true,
       caseData: metadata,
@@ -306,5 +306,136 @@ ipcMain.handle("import-drone-folder", async () => {
   );
 
   return { success: true };
+
+});
+
+async function runTelemetryAnalysis() {
+
+  const pythonPath = "python";
+
+  const scriptPath = path.join(
+    __dirname,
+    "analysis_scripts",
+    "extract_telemetry.py"
+  );
+
+  const evidenceIndexPath = path.join(
+    currentCasePath,
+    "analysis",
+    "evidence_index.json"
+  );
+
+  const outputFolder = path.join(
+    currentCasePath,
+    "analysis"
+  );
+
+  return new Promise((resolve, reject) => {
+
+    execFile(
+      pythonPath,
+      [
+        scriptPath,
+        evidenceIndexPath,
+        outputFolder
+      ],
+      (error, stdout, stderr) => {
+
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(stderr);
+        }
+
+        console.log(stdout);
+
+        resolve();
+
+      }
+    );
+
+  });
+
+}
+async function runImageAnalysis() {
+
+  const pythonPath = "python";
+
+  const scriptPath = path.join(
+    __dirname,
+    "analysis_scripts",
+    "extract_images.py"
+  );
+
+  const evidenceIndexPath = path.join(
+    currentCasePath,
+    "analysis",
+    "evidence_index.json"
+  );
+
+  const outputFolder = path.join(
+    currentCasePath,
+    "analysis"
+  );
+
+  return new Promise((resolve, reject) => {
+
+    execFile(
+      pythonPath,
+      [
+        scriptPath,
+        evidenceIndexPath,
+        outputFolder
+      ],
+      (error, stdout, stderr) => {
+
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(stderr);
+        }
+
+        console.log(stdout);
+
+        resolve();
+
+      }
+    );
+
+  });
+
+}
+
+ipcMain.handle("run-analysis", async () => {
+
+  try {
+
+    // telemetry analysis
+    await runTelemetryAnalysis();
+
+    // image analysis
+    await runImageAnalysis();
+
+    return {
+      success: true
+    };
+
+  }
+  catch (err) {
+
+    return {
+      success: false,
+      error: err.message
+    };
+
+  }
 
 });

@@ -9,5 +9,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("upload-progress", (event, data) =>
       callback(data)
     ),
+  runAnalysis: () => ipcRenderer.invoke("run-analysis"),
+  extractTelemetryData: () =>
+    ipcRenderer.invoke("extract-telemetry-data"),
     
 });
