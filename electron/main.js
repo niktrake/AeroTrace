@@ -414,6 +414,112 @@ async function runImageAnalysis() {
 
 }
 
+async function runConfigAnalysis() {
+
+  const pythonPath = "python";
+
+  const scriptPath = path.join(
+    __dirname,
+    "analysis_scripts",
+    "extract_configs.py"
+  );
+
+  const evidenceIndexPath = path.join(
+    currentCasePath,
+    "analysis",
+    "evidence_index.json"
+  );
+
+  const outputFolder = path.join(
+    currentCasePath,
+    "analysis"
+  );
+
+  return new Promise((resolve, reject) => {
+
+    execFile(
+      pythonPath,
+      [
+        scriptPath,
+        evidenceIndexPath,
+        outputFolder
+      ],
+      (error, stdout, stderr) => {
+
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(stderr);
+        }
+
+        console.log(stdout);
+
+        resolve();
+
+      }
+    );
+
+  });
+
+}
+async function runVideoAnalysis() {
+
+  const pythonPath = "python";
+
+  const scriptPath = path.join(
+    __dirname,
+    "analysis_scripts",
+    "extract_videos.py"
+  );
+
+  const evidenceIndexPath = path.join(
+    currentCasePath,
+    "analysis",
+    "evidence_index.json"
+  );
+
+  const outputFolder = path.join(
+    currentCasePath,
+    "analysis"
+  );
+
+  return new Promise((resolve, reject) => {
+
+    execFile(
+      pythonPath,
+      [
+        scriptPath,
+        evidenceIndexPath,
+        outputFolder
+      ],
+      (error, stdout, stderr) => {
+
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(stderr);
+        }
+
+        console.log(stdout);
+
+        resolve();
+
+      }
+    );
+
+  });
+
+}
+
+
 ipcMain.handle("run-analysis", async () => {
 
   try {
@@ -423,6 +529,12 @@ ipcMain.handle("run-analysis", async () => {
 
     // image analysis
     await runImageAnalysis();
+
+    // config analysis
+    await runConfigAnalysis();
+
+    // video analysis
+    await runVideoAnalysis();
 
     return {
       success: true
