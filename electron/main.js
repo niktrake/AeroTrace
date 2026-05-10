@@ -519,6 +519,52 @@ async function runVideoAnalysis() {
 
 }
 
+async function generateFlightMap() {
+
+  const pythonPath = "python";
+
+  const scriptPath = path.join(
+    __dirname,
+    "analysis_scripts",
+    "generate_flight_map.py"
+  );
+
+  const analysisFolder = path.join(
+    currentCasePath,
+    "analysis"
+  );
+
+  return new Promise((resolve, reject) => {
+
+    execFile(
+      pythonPath,
+      [
+        scriptPath,
+        analysisFolder
+      ],
+      (error, stdout, stderr) => {
+
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(stderr);
+        }
+
+        console.log(stdout);
+
+        resolve();
+
+      }
+    );
+
+  });
+
+}
+
 
 ipcMain.handle("run-analysis", async () => {
 
@@ -535,7 +581,9 @@ ipcMain.handle("run-analysis", async () => {
 
     // video analysis
     await runVideoAnalysis();
-
+    
+    // flight path generation
+    await generateFlightMap();
     return {
       success: true
     };

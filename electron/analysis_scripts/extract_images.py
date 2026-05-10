@@ -87,11 +87,11 @@ for evidence in evidence_list:
         # -----------------------------------
 
         make = metadata.get("Make", "")
-        model = metadata.get("Camera Model Name", "")
-        product = metadata.get("Product Name", "")
+        model = metadata.get("CameraModelName", "")
+        product = metadata.get("ProductName", "")
 
-        gps_lat = metadata.get("GPS Latitude")
-        gps_lon = metadata.get("GPS Longitude")
+        gps_lat = metadata.get("GPSLatitude")
+        gps_lon = metadata.get("GPSLongitude")
 
         timestamp = metadata.get("Create Date", "")
 
@@ -124,17 +124,56 @@ for evidence in evidence_list:
         # -----------------------------------
         # SAVE GPS IF AVAILABLE
         # -----------------------------------
+        def dms_to_decimal(dms):
+
+            try:
+
+                dms = dms.strip()
+
+                direction = dms[-1]
+
+                dms = dms[:-1].strip()
+
+                parts = (
+                    dms.replace("deg", "")
+                    .replace("'", "")
+                    .replace('"', "")
+                    .split()
+            )
+
+                degrees = float(parts[0])
+                minutes = float(parts[1])
+                seconds = float(parts[2])
+
+                decimal = degrees + minutes / 60 + seconds / 3600
+
+                if direction in ["S", "W"]:
+                    decimal *= -1
+
+                return decimal
+
+            except Exception as e:
+
+                print("GPS conversion error:", e)
+
+                return None
+
 
         if gps_lat and gps_lon:
 
-            location_entry = {
-                "file": os.path.basename(file_path),
-                "latitude": gps_lat,
-                "longitude": gps_lon,
-                "timestamp": timestamp
-            }
+            latitude = dms_to_decimal(gps_lat)
+            longitude = dms_to_decimal(gps_lon)
 
-            image_locations.append(location_entry)
+            if latitude is not None and longitude is not None:
+
+                location_entry = {
+                    "file": os.path.basename(file_path),
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "timestamp": timestamp
+                }
+
+                image_locations.append(location_entry)
 
     except Exception as e:
         print(f"Error processing {file_path}: {e}")

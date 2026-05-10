@@ -95,6 +95,18 @@ Import Drone Data
   Analyse
 </button>
 
+  <button
+  onClick={() => {
+    const mapPath =
+      caseData.casePath +
+      "/analysis/flight_map.html";
+
+    window.open(`file://${mapPath}`);
+  }}
+>
+  Open Flight Map
+</button>
+
      
 
       <hr />
