@@ -1,0 +1,35 @@
+.flightStart {
+  background-color: green !important;
+  border-color: green !important;
+  color: white !important;
+}
+
+.flightEnd {
+  background-color: red !important;
+  border-color: red !important;
+  color: white !important;
+}
+
+.imageEvent {
+  background-color: purple !important;
+  border-color: purple !important;
+  color: white !important;
+}
+
+.videoEvent {
+  background-color: blue !important;
+  border-color: blue !important;
+  color: white !important;
+}
+
+.homeEvent {
+  background-color: orange !important;
+  border-color: orange !important;
+  color: white !important;
+}
+
+.accountEvent {
+  background-color: gray !important;
+  border-color: gray !important;
+  color: white !important;
+}
